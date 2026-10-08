@@ -13,72 +13,193 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
+        :root {
+            --teal-1: #00f0d0;
+            --teal-2: #00c9b7;
+            --teal-3: #009d9a;
+            --teal-4: #007a7a;
+            --neon: #00ff9d;
+            --neon-glow: rgba(0, 255, 157, 0.55);
+            --bg: #050a0e;
+            --card: #0a1616;
+        }
+
         body {
             font-family: 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: #050a0e;
-            padding: 16px;
+            background: var(--bg);
+            background-image:
+                radial-gradient(circle at 20% 10%, rgba(0, 255, 200, 0.10) 0%, transparent 45%),
+                radial-gradient(circle at 80% 90%, rgba(0, 200, 255, 0.10) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(0, 255, 157, 0.04) 0%, transparent 60%);
+            background-attachment: fixed;
+            padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
             color: #ffffff;
             direction: rtl;
             min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
+            align-items: center;
             -webkit-font-smoothing: antialiased;
             position: relative;
             overflow-x: hidden;
         }
 
-        /* خلفية متدرجة خفيفة */
-        body::before {
+        /* جزيئات متوهجة خفيفة في الخلفية */
+        body::before,
+        body::after {
             content: '';
             position: fixed;
-            inset: 0;
-            background:
-                radial-gradient(circle at 20% 10%, rgba(0, 255, 200, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 80% 90%, rgba(0, 200, 255, 0.08) 0%, transparent 50%);
+            border-radius: 50%;
+            filter: blur(80px);
             pointer-events: none;
             z-index: 0;
+            animation: floatBg 20s ease-in-out infinite;
+        }
+
+        body::before {
+            width: 320px; height: 320px;
+            background: rgba(0, 255, 180, 0.15);
+            top: -80px; right: -80px;
+        }
+
+        body::after {
+            width: 400px; height: 400px;
+            background: rgba(0, 200, 255, 0.12);
+            bottom: -120px; left: -120px;
+            animation-delay: -10s;
+        }
+
+        @keyframes floatBg {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(30px, -30px) scale(1.15); }
         }
 
         .view-wrapper {
-            max-width: 720px;
+            max-width: 640px;
             width: 100%;
-            margin-top: 20px;
-            padding-bottom: 90px;
+            padding: 20px 0 100px;
             position: relative;
             z-index: 1;
+            margin: auto;
         }
 
-        /* ===== بطاقة النص بنفس ستايل بطاقة القوانين ===== */
+        /* ===== رسالة الترحيب ===== */
+        .welcome-card {
+            background: linear-gradient(135deg, rgba(0, 240, 208, 0.16), rgba(0, 157, 154, 0.12));
+            border: 1.5px solid rgba(0, 255, 157, 0.4);
+            border-radius: 22px;
+            padding: 20px 22px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow:
+                0 0 30px rgba(0, 255, 180, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            animation: cardIn 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-card::before {
+            content: '';
+            position: absolute;
+            top: -50%; right: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(0, 255, 157, 0.10), transparent 55%);
+            animation: rotateGlow 12s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes rotateGlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .welcome-card > * { position: relative; z-index: 1; }
+
+        .welcome-emoji {
+            font-size: 44px;
+            display: block;
+            margin-bottom: 8px;
+            animation: bounceEmoji 2.5s ease-in-out infinite;
+            filter: drop-shadow(0 0 12px rgba(0, 255, 157, 0.5));
+        }
+
+        @keyframes bounceEmoji {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-8px) rotate(-6deg); }
+            75% { transform: translateY(-4px) rotate(6deg); }
+        }
+
+        .welcome-title {
+            font-size: 19px;
+            font-weight: 900;
+            color: #ffffff;
+            margin-bottom: 6px;
+            letter-spacing: -0.3px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        .welcome-text {
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.7;
+            max-width: 460px;
+            margin: 0 auto;
+        }
+
+        .welcome-text .highlight {
+            color: var(--neon);
+            font-weight: 800;
+            text-shadow: 0 0 10px rgba(0, 255, 157, 0.4);
+        }
+
+        /* ===== بطاقة النص ===== */
         .note-box {
             position: relative;
             background: linear-gradient(160deg, #00f0d0 0%, #00c9b7 25%, #009d9a 55%, #007a7a 100%);
             border: 2px solid #00ff9d;
             border-radius: 26px;
-            padding: 28px 22px;
+            padding: 28px 24px;
             margin-bottom: 18px;
             white-space: pre-wrap;
             word-break: break-word;
-            font-size: 16px;
-            line-height: 1.9;
+            font-size: 16.5px;
+            line-height: 2;
             color: #ffffff;
             box-shadow:
                 0 0 0 1px rgba(0, 255, 200, 0.15),
-                0 0 30px rgba(0, 255, 180, 0.25),
-                0 20px 50px rgba(0, 0, 0, 0.6),
+                0 0 35px rgba(0, 255, 180, 0.28),
+                0 24px 60px rgba(0, 0, 0, 0.65),
                 inset 0 1px 0 rgba(255, 255, 255, 0.3);
-            animation: cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: cardIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s backwards;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
         }
 
-        /* خط علوي متوهج */
         .note-box::before {
             content: '';
             position: absolute;
             top: 0; right: 0;
             width: 100%;
             height: 3px;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.85), transparent);
             border-radius: 26px 26px 0 0;
+        }
+
+        /* علامة اقتباس في الركن */
+        .note-box::after {
+            content: '❝';
+            position: absolute;
+            bottom: 12px;
+            left: 18px;
+            font-size: 60px;
+            color: rgba(255, 255, 255, 0.12);
+            font-family: Georgia, serif;
+            line-height: 1;
+            pointer-events: none;
         }
 
         @keyframes cardIn {
@@ -86,79 +207,125 @@
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
+        /* ===== زر النسخ العائم ===== */
+        .copy-float {
+            position: fixed;
+            bottom: 84px;
+            right: 20px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--teal-1), var(--teal-3));
+            border: 2px solid var(--neon);
+            color: #003838;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 22px var(--neon-glow), 0 8px 20px rgba(0, 0, 0, 0.5);
+            z-index: 7777;
+            transition: 0.25s;
+            font-family: inherit;
+        }
+
+        .copy-float:active { transform: scale(0.9); }
+        .copy-float:hover { transform: translateY(-3px); }
+
         /* ===== الإعلانات ===== */
         .ad-slot {
             width: 100%;
-            margin: 10px 0;
+            margin: 14px 0;
             display: flex;
             justify-content: center;
             align-items: center;
             border-radius: 18px;
             overflow: hidden;
-            background: rgba(0, 200, 180, 0.08);
+            background: rgba(0, 200, 180, 0.06);
             border: 1px solid rgba(0, 255, 200, 0.2);
             min-height: 60px;
-            padding: 6px;
-            box-shadow: 0 0 20px rgba(0, 255, 180, 0.08);
+            padding: 8px;
+            box-shadow: 0 0 22px rgba(0, 255, 180, 0.1);
+            position: relative;
         }
 
-        .ad-slot.tiny { min-height: 50px; }
-        .ad-slot.medium { min-height: 90px; }
+        .ad-slot::before {
+            content: 'AD';
+            position: absolute;
+            top: 4px;
+            right: 8px;
+            font-size: 9px;
+            font-weight: 800;
+            color: rgba(0, 255, 157, 0.5);
+            letter-spacing: 1px;
+            pointer-events: none;
+        }
+
+        .ad-slot.tiny { min-height: 60px; }
+        .ad-slot.medium { min-height: 100px; }
         .ad-slot.large { min-height: 250px; }
         .ad-slot iframe { max-width: 100%; border: 0; display: block; }
 
         /* ===== الأخطاء ===== */
         .error-box {
             text-align: center;
-            padding: 60px 20px;
-            color: rgba(255, 255, 255, 0.7);
-            background: linear-gradient(160deg, rgba(0, 240, 208, 0.12), rgba(0, 122, 122, 0.12));
+            padding: 70px 24px;
+            color: rgba(255, 255, 255, 0.75);
+            background: linear-gradient(160deg, rgba(0, 240, 208, 0.10), rgba(0, 122, 122, 0.10));
             border: 2px solid rgba(0, 255, 157, 0.4);
             border-radius: 26px;
             box-shadow: 0 0 30px rgba(0, 255, 180, 0.15);
-            animation: cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: cardIn 0.7s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .error-box .big-icon {
-            font-size: 60px;
+            font-size: 64px;
             display: block;
             margin-bottom: 16px;
-            opacity: 0.8;
-            filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.5));
+            opacity: 0.85;
+            filter: drop-shadow(0 0 12px rgba(255, 0, 0, 0.5));
+            animation: bounceEmoji 3s ease-in-out infinite;
         }
 
-        .error-box p { font-size: 15px; font-weight: 500; }
+        .error-box .err-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .error-box p { font-size: 14px; font-weight: 500; }
 
         /* ===== التحميل ===== */
         .loader {
             text-align: center;
-            padding: 60px 20px;
-            color: rgba(255, 255, 255, 0.7);
+            padding: 80px 20px;
+            color: rgba(255, 255, 255, 0.75);
         }
 
         .loader .spinner {
-            width: 44px; height: 44px;
+            width: 48px; height: 48px;
             border: 3px solid rgba(0, 255, 200, 0.15);
             border-top-color: #00ff9d;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
-            margin: 0 auto 16px;
-            box-shadow: 0 0 20px rgba(0, 255, 180, 0.3);
+            margin: 0 auto 18px;
+            box-shadow: 0 0 25px rgba(0, 255, 180, 0.35);
         }
 
-        .loader span { font-weight: 600; font-size: 14px; }
+        .loader span { font-weight: 700; font-size: 14px; }
 
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ===== زر مطوّر الموقع ===== */
+        /* ===== زر المطور ===== */
         .dev-credit {
             position: fixed;
-            bottom: 18px;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             background: linear-gradient(135deg, rgba(0, 240, 208, 0.95), rgba(0, 157, 154, 0.95));
             color: #052a2a;
-            padding: 10px 20px;
+            padding: 11px 22px;
             border-radius: 40px;
             font-size: 12px;
             font-weight: 800;
@@ -166,10 +333,10 @@
             display: flex;
             align-items: center;
             gap: 7px;
-            border: 1px solid rgba(0, 255, 157, 0.6);
+            border: 1.5px solid rgba(0, 255, 157, 0.65);
             box-shadow:
-                0 0 20px rgba(0, 255, 180, 0.4),
-                0 8px 24px rgba(0, 0, 0, 0.5),
+                0 0 22px rgba(0, 255, 180, 0.45),
+                0 10px 28px rgba(0, 0, 0, 0.55),
                 inset 0 1px 0 rgba(255, 255, 255, 0.4);
             z-index: 7777;
             backdrop-filter: blur(12px);
@@ -200,12 +367,44 @@
             width: 0%;
             z-index: 9999;
             transition: width 0.1s linear;
-            box-shadow: 0 0 10px rgba(0, 255, 180, 0.7);
+            box-shadow: 0 0 12px rgba(0, 255, 180, 0.8);
         }
 
+        /* ===== Toast ===== */
+        .toast {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: linear-gradient(135deg, var(--teal-1), var(--teal-3));
+            color: #003838;
+            padding: 13px 24px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 800;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            text-align: center;
+            max-width: 90%;
+            border: 2px solid var(--neon);
+            box-shadow: 0 0 28px var(--neon-glow), 0 10px 24px rgba(0, 0, 0, 0.5);
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* ===== Responsive ===== */
         @media (max-width: 480px) {
             body { padding: 12px; }
-            .note-box { padding: 22px 18px; border-radius: 22px; font-size: 15px; }
+            .view-wrapper { padding-top: 10px; }
+            .note-box { padding: 22px 18px; border-radius: 22px; font-size: 15.5px; line-height: 1.95; }
+            .welcome-card { padding: 18px 18px; border-radius: 20px; }
+            .welcome-emoji { font-size: 38px; }
+            .welcome-title { font-size: 17px; }
+            .welcome-text { font-size: 13px; }
+            .copy-float { width: 44px; height: 44px; font-size: 18px; bottom: 80px; right: 16px; }
         }
     </style>
 </head>
@@ -214,15 +413,27 @@
     <div class="progress-bar" id="progressBar"></div>
 
     <div class="view-wrapper" id="viewWrapper">
+        <!-- Loader -->
         <div class="loader" id="loader">
             <div class="spinner"></div>
-            <span>⏳ جاري التحميل...</span>
+            <span>⏳ جاري تحميل النص...</span>
         </div>
 
+        <!-- Content -->
         <div id="contentArea" style="display:none;">
-            <div class="note-box" id="noteBox"></div>
 
-            <!-- إعلانات -->
+            <!-- 💌 رسالة الترحيب الجميلة -->
+            <div class="welcome-card">
+                <span class="welcome-emoji">🫶</span>
+                <div class="welcome-title">أهلاً بك يا صديقي / يا صديقتي 💚</div>
+                <div class="welcome-text">
+                    هذا النص وصل إليك <span class="highlight">بكل حب</span> من شخص يهتم بك،
+                    أرسله لك ليشاركك شيئاً مميزاً. نتمنى أن تجده <span class="highlight">مفيداً وممتعاً</span>!
+                    شكراً لزيارتك لـ <span class="highlight">TxtVault</span> 💫
+                </div>
+            </div>
+
+            <!-- 📢 إعلان علوي (CPM قوي) -->
             <div class="ad-slot tiny">
                 <script>
                   atOptions = {
@@ -236,7 +447,11 @@
                 <script src="https://www.highrevenueformat.com/bba1284ed30ea5781eb25d88ffec21d5/invoke.js"></script>
             </div>
 
-            <div class="ad-slot large">
+            <!-- 📄 بطاقة النص -->
+            <div class="note-box" id="noteBox"></div>
+
+            <!-- 📢 إعلان وسط (CPM قوي) -->
+            <div class="ad-slot medium">
                 <script>
                   atOptions = {
                     'key' : 'abbf8d43df39eef3558c9240af895ebd',
@@ -248,18 +463,50 @@
                 </script>
                 <script src="https://www.highrevenueformat.com/abbf8d43df39eef3558c9240af895ebd/invoke.js"></script>
             </div>
+
+            <!-- 🎁 بطاقة شكر أخيرة -->
+            <div class="welcome-card" style="animation-delay: 0.2s;">
+                <span class="welcome-emoji">🌟</span>
+                <div class="welcome-title">شكراً لقراءتك 💖</div>
+                <div class="welcome-text">
+                    إذا أعجبك المحتوى، لا تنسَ مشاركته مع أصدقائك،
+                    فهم يستحقون <span class="highlight">كل جميل</span> 🫶
+                </div>
+            </div>
+
+            <!-- 📢 إعلان سفلي (CPM قوي) -->
+            <div class="ad-slot large">
+                <script>
+                  atOptions = {
+                    'key' : 'bba1284ed30ea5781eb25d88ffec21d5',
+                    'format' : 'iframe',
+                    'height' : 250,
+                    'width' : 300,
+                    'params' : {}
+                  };
+                </script>
+                <script src="https://www.highrevenueformat.com/bba1284ed30ea5781eb25d88ffec21d5/invoke.js"></script>
+            </div>
         </div>
 
+        <!-- Error -->
         <div class="error-box" id="errorBox" style="display:none;">
             <span class="big-icon">🔍</span>
-            <p id="errorMsg">النص غير موجود</p>
+            <div class="err-title">النص غير موجود</div>
+            <p id="errorMsg">تأكد من صحة الرابط وحاول مرة أخرى</p>
         </div>
     </div>
 
+    <!-- زر النسخ العائم -->
+    <button type="button" class="copy-float" id="copyFloat" title="نسخ النص" style="display:none;">📋</button>
+
+    <!-- زر المطور -->
     <a class="dev-credit" href="https://www.facebook.com/share/1Dn4faW1Ay/" target="_blank" rel="noopener">
         <span class="dot"></span>
         <span>مطوّر الموقع</span>
     </a>
+
+    <div class="toast" id="toast"></div>
 
     <script>
         const FIREBASE_CONFIG = {
@@ -278,10 +525,20 @@
         const $ = id => document.getElementById(id);
         const urlParams = new URLSearchParams(window.location.search);
         const noteId = urlParams.get('id');
+        let currentNoteContent = '';
 
-        function showError(msg) {
+        function showToast(msg) {
+            const tt = $('toast');
+            tt.textContent = msg;
+            tt.className = 'toast show';
+            clearTimeout(tt._timeout);
+            tt._timeout = setTimeout(() => tt.className = 'toast', 2500);
+        }
+
+        function showError(title, msg) {
             $('loader').style.display = 'none';
             $('errorBox').style.display = 'block';
+            $('errorBox').querySelector('.err-title').textContent = title;
             $('errorMsg').textContent = msg;
         }
 
@@ -294,28 +551,60 @@
         }
         window.addEventListener('scroll', updateProgress, { passive: true });
 
+        // نسخ النص
+        function copyNote() {
+            if (!currentNoteContent) return;
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(currentNoteContent).then(() => {
+                    showToast('📋 تم نسخ النص بنجاح!');
+                }).catch(() => fallbackCopy(currentNoteContent));
+            } else {
+                fallbackCopy(currentNoteContent);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try {
+                document.execCommand('copy');
+                showToast('📋 تم نسخ النص بنجاح!');
+            } catch (e) { showToast('❌ فشل النسخ'); }
+            ta.remove();
+        }
+
+        $('copyFloat').addEventListener('click', copyNote);
+
+        // تحميل النص
         if (!noteId) {
-            showError('الرابط غير صالح');
+            showError('رابط غير صالح', 'الرابط الذي فتحته غير صحيح أو منتهي الصلاحية');
         } else {
             DB.ref('notes/' + noteId).once('value').then(snapshot => {
                 if (snapshot.exists()) {
                     const note = snapshot.val();
-                    $('noteBox').textContent = note.content || '';
+                    currentNoteContent = note.content || '';
+                    $('noteBox').textContent = currentNoteContent;
                     $('loader').style.display = 'none';
                     $('contentArea').style.display = 'block';
+                    $('copyFloat').style.display = 'flex';
 
-                    document.title = note.title ? ('📝 ' + note.title + ' - TxtVault') : 'TxtVault';
+                    document.title = note.title ? ('📝 ' + note.title + ' — TxtVault') : 'TxtVault';
 
                     // زيادة عدد المشاهدات
                     DB.ref('notes/' + noteId + '/views').transaction(v => (v || 0) + 1);
 
                     setTimeout(updateProgress, 100);
                 } else {
-                    showError('النص غير موجود');
+                    showError('النص غير موجود', 'ربما تم حذف هذا النص أو أن الرابط غير صحيح');
                 }
             }).catch(err => {
                 console.error(err);
-                showError('تعذر تحميل النص');
+                showError('تعذر تحميل النص', 'حدث خطأ في الاتصال، يرجى المحاولة لاحقاً');
             });
         }
     </script>
