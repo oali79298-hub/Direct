@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TxtVault</title>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #050a0e;
+            padding: 16px;
+            color: #ffffff;
+            direction: rtl;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            -webkit-font-smoothing: antialiased;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* خلفية متدرجة خفيفة */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 10%, rgba(0, 255, 200, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 90%, rgba(0, 200, 255, 0.08) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .view-wrapper {
+            max-width: 720px;
+            width: 100%;
+            margin-top: 20px;
+            padding-bottom: 90px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== بطاقة النص بنفس ستايل بطاقة القوانين ===== */
+        .note-box {
+            position: relative;
+            background: linear-gradient(160deg, #00f0d0 0%, #00c9b7 25%, #009d9a 55%, #007a7a 100%);
+            border: 2px solid #00ff9d;
+            border-radius: 26px;
+            padding: 28px 22px;
+            margin-bottom: 18px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 16px;
+            line-height: 1.9;
+            color: #ffffff;
+            box-shadow:
+                0 0 0 1px rgba(0, 255, 200, 0.15),
+                0 0 30px rgba(0, 255, 180, 0.25),
+                0 20px 50px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            animation: cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* خط علوي متوهج */
+        .note-box::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+            border-radius: 26px 26px 0 0;
+        }
+
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(24px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* ===== الإعلانات ===== */
+        .ad-slot {
+            width: 100%;
+            margin: 10px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 18px;
+            overflow: hidden;
+            background: rgba(0, 200, 180, 0.08);
+            border: 1px solid rgba(0, 255, 200, 0.2);
+            min-height: 60px;
+            padding: 6px;
+            box-shadow: 0 0 20px rgba(0, 255, 180, 0.08);
+        }
+
+        .ad-slot.tiny { min-height: 50px; }
+        .ad-slot.medium { min-height: 90px; }
+        .ad-slot.large { min-height: 250px; }
+        .ad-slot iframe { max-width: 100%; border: 0; display: block; }
+
+        /* ===== الأخطاء ===== */
+        .error-box {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255, 255, 255, 0.7);
+            background: linear-gradient(160deg, rgba(0, 240, 208, 0.12), rgba(0, 122, 122, 0.12));
+            border: 2px solid rgba(0, 255, 157, 0.4);
+            border-radius: 26px;
+            box-shadow: 0 0 30px rgba(0, 255, 180, 0.15);
+            animation: cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .error-box .big-icon {
+            font-size: 60px;
+            display: block;
+            margin-bottom: 16px;
+            opacity: 0.8;
+            filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.5));
+        }
+
+        .error-box p { font-size: 15px; font-weight: 500; }
+
+        /* ===== التحميل ===== */
+        .loader {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .loader .spinner {
+            width: 44px; height: 44px;
+            border: 3px solid rgba(0, 255, 200, 0.15);
+            border-top-color: #00ff9d;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+            box-shadow: 0 0 20px rgba(0, 255, 180, 0.3);
+        }
+
+        .loader span { font-weight: 600; font-size: 14px; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== زر مطوّر الموقع ===== */
+        .dev-credit {
+            position: fixed;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, rgba(0, 240, 208, 0.95), rgba(0, 157, 154, 0.95));
+            color: #052a2a;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 800;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            border: 1px solid rgba(0, 255, 157, 0.6);
+            box-shadow:
+                0 0 20px rgba(0, 255, 180, 0.4),
+                0 8px 24px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            z-index: 7777;
+            backdrop-filter: blur(12px);
+            transition: transform 0.2s ease;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        .dev-credit:active { transform: translateX(-50%) scale(0.95); }
+
+        .dev-credit .dot {
+            width: 7px; height: 7px;
+            background: #003d3d;
+            border-radius: 50%;
+            animation: pulse 1.6s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.85); }
+        }
+
+        /* ===== شريط تقدم القراءة ===== */
+        .progress-bar {
+            position: fixed;
+            top: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #00ff9d, #00f0d0);
+            width: 0%;
+            z-index: 9999;
+            transition: width 0.1s linear;
+            box-shadow: 0 0 10px rgba(0, 255, 180, 0.7);
+        }
+
+        @media (max-width: 480px) {
+            body { padding: 12px; }
+            .note-box { padding: 22px 18px; border-radius: 22px; font-size: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="progress-bar" id="progressBar"></div>
+
+    <div class="view-wrapper" id="viewWrapper">
+        <div class="loader" id="loader">
+            <div class="spinner"></div>
+            <span>⏳ جاري التحميل...</span>
+        </div>
+
+        <div id="contentArea" style="display:none;">
+            <div class="note-box" id="noteBox"></div>
+
+            <!-- إعلانات -->
+            <div class="ad-slot tiny">
+                <script>
+                  atOptions = {
+                    'key' : 'bba1284ed30ea5781eb25d88ffec21d5',
+                    'format' : 'iframe',
+                    'height' : 50,
+                    'width' : 320,
+                    'params' : {}
+                  };
+                </script>
+                <script src="https://www.highrevenueformat.com/bba1284ed30ea5781eb25d88ffec21d5/invoke.js"></script>
+            </div>
+
+            <div class="ad-slot large">
+                <script>
+                  atOptions = {
+                    'key' : 'abbf8d43df39eef3558c9240af895ebd',
+                    'format' : 'iframe',
+                    'height' : 250,
+                    'width' : 300,
+                    'params' : {}
+                  };
+                </script>
+                <script src="https://www.highrevenueformat.com/abbf8d43df39eef3558c9240af895ebd/invoke.js"></script>
+            </div>
+        </div>
+
+        <div class="error-box" id="errorBox" style="display:none;">
+            <span class="big-icon">🔍</span>
+            <p id="errorMsg">النص غير موجود</p>
+        </div>
+    </div>
+
+    <a class="dev-credit" href="https://www.facebook.com/share/1Dn4faW1Ay/" target="_blank" rel="noopener">
+        <span class="dot"></span>
+        <span>مطوّر الموقع</span>
+    </a>
+
+    <script>
+        const FIREBASE_CONFIG = {
+            apiKey: "AIzaSyBHnknMBiVdigipFyLMNkdFcm_tOQKWc-4",
+            authDomain: "aktubar98.firebaseapp.com",
+            databaseURL: "https://aktubar98-default-rtdb.firebaseio.com",
+            projectId: "aktubar98",
+            storageBucket: "aktubar98.appspot.com",
+            messagingSenderId: "679902534827",
+            appId: "1:679902534827:android:03edb9ea18b42eaef7abee"
+        };
+
+        firebase.initializeApp(FIREBASE_CONFIG);
+        const DB = firebase.database();
+
+        const $ = id => document.getElementById(id);
+        const urlParams = new URLSearchParams(window.location.search);
+        const noteId = urlParams.get('id');
+
+        function showError(msg) {
+            $('loader').style.display = 'none';
+            $('errorBox').style.display = 'block';
+            $('errorMsg').textContent = msg;
+        }
+
+        // شريط تقدم القراءة
+        function updateProgress() {
+            const scrollTop = window.scrollY;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+            $('progressBar').style.width = progress + '%';
+        }
+        window.addEventListener('scroll', updateProgress, { passive: true });
+
+        if (!noteId) {
+            showError('الرابط غير صالح');
+        } else {
+            DB.ref('notes/' + noteId).once('value').then(snapshot => {
+                if (snapshot.exists()) {
+                    const note = snapshot.val();
+                    $('noteBox').textContent = note.content || '';
+                    $('loader').style.display = 'none';
+                    $('contentArea').style.display = 'block';
+
+                    document.title = note.title ? ('📝 ' + note.title + ' - TxtVault') : 'TxtVault';
+
+                    // زيادة عدد المشاهدات
+                    DB.ref('notes/' + noteId + '/views').transaction(v => (v || 0) + 1);
+
+                    setTimeout(updateProgress, 100);
+                } else {
+                    showError('النص غير موجود');
+                }
+            }).catch(err => {
+                console.error(err);
+                showError('تعذر تحميل النص');
+            });
+        }
+    </script>
+</body>
+</html>
